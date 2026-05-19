@@ -43,6 +43,7 @@ window.PIXIE_CONFIG = {
   /* ── 9 CAMPAIGNS (from Sheet 16) ──────────────────────────────── */
   campaigns: [
     { slot: 'C1', type: 'prospecting', product: 'core_pair',
+     id: '120244058093930714',
       name: 'BROAD · TIER1 CITIES · F25-54 · CORE PAIR',
       spendShare: 26,
       dailyBudget:  { p1: 14000, p2: 14000, p3: 15000 },
