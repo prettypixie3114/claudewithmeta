@@ -221,10 +221,23 @@ function buildKpis(row) {
     hookRate: impressions > 0 ? +((videoP3 / impressions) * 100).toFixed(1) : null,
   };
 }
-function slotFor(name) {
+function slotFor(name, campaignId) {
+  if (!name && !campaignId) return null;
+  // Match by campaign ID first (most reliable)
+  if (campaignId) {
+    const byId = SLOTS.find(s => s.id && s.id === String(campaignId));
+    if (byId) return byId.slot;
+  }
+  // Fall back to name pattern match
   if (!name) return null;
-  const m = name.toUpperCase().match(/^(C\d+)[_\s\-·]/);
-  return m && SLOT_MAP[m[1]] ? m[1] : null;
+  const u = name.toUpperCase();
+  // Match C1–C9 at start of name
+  const m = u.match(/^(C\d+)[_\s\-·]/);
+  if (m && SLOT_MAP[m[1]]) return m[1];
+  // Match anywhere in name
+  const m2 = u.match(/\b(C[1-9])\b/);
+  if (m2 && SLOT_MAP[m2[1]]) return m2[1];
+  return null;
 }
 
 async function fetchAll(token, dateQ) {
@@ -250,7 +263,7 @@ async function fetchAll(token, dateQ) {
   const segmentsAgg = (segments.data || []).map(r => ({ age: r.age, gender: r.gender, ...buildKpis(r) }));
 
   const campaigns = (camps.data || []).filter(c => c.effective_status !== 'DELETED').map(c => {
-    const k = buildKpis(im[c.id]); const slot = slotFor(c.name); const cfg = slot ? SLOT_MAP[slot] : null;
+    const k = buildKpis(im[c.id]); const slot = slotFor(c.name, c.id); const cfg = slot ? SLOT_MAP[slot] : null;
     const eff = c.effective_status; const spend = k.spend || 0; let status = 'active';
     if (['PAUSED','CAMPAIGN_PAUSED'].includes(eff)) status = 'paused';
     else if (['DISAPPROVED','POLICY_VIOLATION'].includes(eff)) status = 'disapproved';
